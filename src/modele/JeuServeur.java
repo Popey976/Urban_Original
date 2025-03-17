@@ -1,6 +1,7 @@
 package modele;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 
 import javax.swing.JLabel;
@@ -32,6 +33,13 @@ public class JeuServeur extends Jeu implements Global {
 		super.controle = controle;
 	}
 	
+	/**
+	 * @return the lesJoueurs
+	 */
+	public Collection getLesJoueurs() {
+		return lesJoueurs.values();
+	}
+
 	@Override
 	public void connexion(Connection connection) {
 		this.lesJoueurs.put(connection, new Joueur(this));
@@ -55,6 +63,10 @@ public class JeuServeur extends Jeu implements Global {
 			String phrase = infos[1];
 			phrase = this.lesJoueurs.get(connection).getPseudo()+" > "+phrase;
 			this.controle.evenementJeuServeur(AJOUTPHRASE, phrase);
+			break;
+		case ACTION :
+			Integer action = Integer.parseInt(infos[1]);
+			this.lesJoueurs.get(connection).action(action, this.lesJoueurs.values(), this.lesMurs);
 			break;
 		}
 	}

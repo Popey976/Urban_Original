@@ -11,6 +11,8 @@ import javax.swing.JTextField;
 
 import controleur.Controle;
 import controleur.Global;
+import outils.son.Son;
+
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.URL;
@@ -50,6 +52,10 @@ public class Arene extends JFrame implements Global {
 	 * Permet de savoir si c'est une arène client ou serveur
 	 */
 	private Boolean client;
+	/**
+	 * Talbeau des sons de l'arène
+	 */
+	private Son[] lesSons = new Son[SON.length];
 	
 	/**
 	 * @return the jpnMurs
@@ -80,6 +86,7 @@ public class Arene extends JFrame implements Global {
 		this.jpnJeu.removeAll();
 		this.jpnJeu.add(jpnJeu);
 		this.jpnJeu.repaint();
+		this.contentPane.requestFocus();
 	}
 
 	/**
@@ -125,6 +132,14 @@ public class Arene extends JFrame implements Global {
 	}
 	
 	/**
+	 * Joue le son correspondant au numéro reçu
+	 * @param numSon numéro du son (0 : fight, 1 : hurt; 2 : death)
+	 */
+	public void joueSon(Integer numSon) {
+		this.lesSons[numSon].play();
+	}
+	
+	/**
 	 * Evénément touche pressée dans la zone de saisie
 	 * @param e informations sur la touche
 	 */
@@ -136,6 +151,28 @@ public class Arene extends JFrame implements Global {
 				this.controle.evenementArene(this.txtSaisie.getText());
 				this.txtSaisie.setText("");
 			}
+			this.contentPane.requestFocus();
+		}
+	}
+	
+	/**
+	 * Evénement touche pressée sur le panel général
+	 * @param e informations sur la touche
+	 */
+	public void contentPane_KeyPressed(KeyEvent e) {
+		int touche = -1;
+		switch(e.getKeyCode()) {
+		case KeyEvent.VK_LEFT :
+		case KeyEvent.VK_RIGHT :
+		case KeyEvent.VK_UP :
+		case KeyEvent.VK_DOWN :
+		case KeyEvent.VK_SPACE :
+			touche = e.getKeyCode();
+			break;
+		}
+		// si touche correcte, alors envoi de sa valeur
+		if(touche != -1) {
+			this.controle.evenementArene(touche);
 		}
 	}
 	
@@ -155,8 +192,14 @@ public class Arene extends JFrame implements Global {
 		setTitle("Arena");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		contentPane = new JPanel();
+		contentPane.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				contentPane_KeyPressed(e);
+			}
+		});
 		setContentPane(contentPane);
-		contentPane.setLayout(null);
+		contentPane.setLayout(null);	
 	
 		jpnJeu = new JPanel();
 		jpnJeu.setBounds(0, 0, LARGEURARENE, HAUTEURARENE);
@@ -189,6 +232,12 @@ public class Arene extends JFrame implements Global {
 		contentPane.add(jspChat);
 		
 		txtChat = new JTextArea();
+		txtChat.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				contentPane_KeyPressed(e);
+			}
+		});
 		txtChat.setEditable(false);
 		jspChat.setViewportView(txtChat);
 		
@@ -197,6 +246,13 @@ public class Arene extends JFrame implements Global {
 		lblFond.setIcon(new ImageIcon(resource));		
 		lblFond.setBounds(0, 0, 800, 600);
 		contentPane.add(lblFond);
+		
+		// gestion des sons pour le client
+		if (client) {
+			for (int k=0 ; k<SON.length ; k++) {
+				lesSons[k] = new Son(getClass().getClassLoader().getResource(SON[k])) ;
+			}
+		}
 		
 		// récupération de l'instance de Controle
 		this.controle = controle;
